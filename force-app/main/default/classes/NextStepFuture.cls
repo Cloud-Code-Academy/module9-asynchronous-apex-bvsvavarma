@@ -17,6 +17,45 @@
  * Note: The class below contains placeholders for implementing a future method to update accounts and opportunities.
  *       The accompanying test class 'AsynchronousTest' should also be updated to test this method.
  */
+
+ /*
+1. Any Asynchronous method code runs it is registered in AsyncApexJob.  
+2. Once it is registered, we will get JobId.
+3. We can use this JobId to query the job.
+4. If we want to query the job, we need to use System.enqueueJob(new QueueableClassName)
+
+Future Method:
+    1. If a transaction has any long running statements, and if these statements doesn't have any dependency on 
+    rest of the statements then we can run those long running operations independently from the rest of the 
+    transactions. By Using Future Method
+    2. Long Running Operations [Ex: Webservices Calls, Bulk DML Operations]
+    3. Rules to define future methods:
+        1. All future methods should have @future annotation.
+        2. All future methods should be static.
+        3. All future methods should be void.
+        4. Onlu primitive variables can be passed as parameters.
+        5. When we invoke the future method they will be added to the queue and from the queue they will be executed.
+        6. If you want to invoke webservices from the future method then define 
+            @future(callout=true)
+        7.Any Asynchronous Job that is running in Salesforce will be registered with AsyncApexJob object.
+        8. How to track the status of the job:
+            1. Write a SOQL Query on AsyncApexJob.
+            2. Declarative way to check the status:
+                1. Setup > Monitor > Jobs > Apex Jobs
+        9. Future methods can be used to increase the governing limits.
+    Drawbacks:
+        1. Future method will not return jobId in the APEX code.
+        2. Future method cannot be called from another future method.
+        3. Future method will not support sObjects as parameters.
+
+    Limits:
+        1. Within in a trasaction we can call 50 Future methods.
+    
+    WorkAround:
+        1. When we have requirement to pass object as parameter to future methos how will we do it:
+            a. Pass RecordId instead of record.
+            b. Serialize the sObject as String using JSON/XML and pass string as parameter to future method.
+        */
 public with sharing class NextStepFuture {
 
     /* 
@@ -96,21 +135,3 @@ public with sharing class NextStepFuture {
         upsert role;
     }
 }
-/*
-1. Any Asynchronous method code runs it is registered in AsyncApexJob.  
-2. Once it is registered, we will get JobId.
-3. We can use this JobId to query the job.
-4. If we want to query the job, we need to use System.enqueueJob(new QueueableClassName)
-
-Future Method:
-Running Long running operations in backgroung [Ex: Webservices, Bulk DML Opearations(Ex 10000 records), ]
-Future method should be annotated with @future and must be static and return type should be void.
-Drawbacks:
-    1. Future method will be accept primitive data types as parameters.
-    2. Future method will be registered with AsyncApexJob, because the return type as void the JobId will not be returned, hence we cannot track the status of future method.
-    3. We cannot call Future method in another Future Method.
-When we Use Future Method:
-    1. Used to Handling long running operations.
-    2. To resolve Mixed DML Exception. [Setup Objects: Objects on which we make change if it impact the permission of the users on the record of the databse, then they ae Setup object, remaining Object are called non-setup objects]
-    3. 
-*/
