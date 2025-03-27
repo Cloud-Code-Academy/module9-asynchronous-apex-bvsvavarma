@@ -31,6 +31,25 @@ public with sharing class NextStepFuture {
     //  The body of the method
     //}
 
+    @future
+    public static void updateAllNextStep(){
+        List<Account> accountList = [SELECT Id, Name, Next_Step__c FROM Account];
+        for(Account acc : accountList){
+            acc.Next_Step__c = 'Meeting in the future';
+        }
+        if(!accountList.isEmpty()){
+            Database.update(accountList);
+        }
+
+        List<Opportunity>  opportunityList = [SELECT Id, Name, NextStep FROM Opportunity];
+        for(Opportunity opp : opportunityList){
+            opp.NextStep = 'Meeting in the future';
+        }
+        if(!opportunityList.isEmpty()){
+            Database.update(opportunityList);
+        }
+    }
+
     /*
     * Question 2
     * Update/Uncomment the template code to create a method
@@ -39,11 +58,13 @@ public with sharing class NextStepFuture {
     */
     //Mix DML Error happens when you try to perform DML operations on setup and non-setup objects in a single transaction.
     public static void createDealAndUpdateRole() {
-        Opportunity bigDeal = new Opportunity();
+     Opportunity bigDeal = new Opportunity();
         insertBigDeal(bigDeal);
 
         UserRole[] roles = [SELECT Id, Name FROM UserRole WHERE Id = :UserInfo.getUserRoleId() OR Name = 'CRO' LIMIT 1];
-        updateUserRoleName(roles);
+        //we can only pass prmitive to Future Method so convert this to Primitive and passing value
+        String roleId = roles.isEmpty()? null : roles[0].Id;
+        updateUserRoleName(roleId);
     }
 
     // Helper method to insert big deal
@@ -58,15 +79,16 @@ public with sharing class NextStepFuture {
 
 
     // Helper method to update role name
-    private static void updateUserRoleName(UserRole[] roles){
+    @future
+    private static void updateUserRoleName(String roleId){
         UserRole role;
-        if (roles.isEmpty()) {
+        if (roleId ==  null) {
             role = new UserRole();
             role.portalType = 'None'; 
             role.CaseAccessForAccountOwner = 'Edit'; 
             // role.OpportunityAccessForAccountOwner = 'Edit'; //This may need to be uncommented depending on your orgs Organization Wide Defaults(OWD) settings. If you are receiving FIELD_INTEGRITY_EXCEPTION, field integrity exception: unknown (Opportunity access level below organization default): [unknown], uncomment this line.
         } else {
-            role = roles[0];
+            role = [SELECT Id, Name FROM UserRole WHERE Id = :roleId LIMIT 1];
         }
 
         role.Name = 'CRO';
@@ -74,3 +96,21 @@ public with sharing class NextStepFuture {
         upsert role;
     }
 }
+/*
+1. Any Asynchronous method code runs it is registered in AsyncApexJob.  
+2. Once it is registered, we will get JobId.
+3. We can use this JobId to query the job.
+4. If we want to query the job, we need to use System.enqueueJob(new QueueableClassName)
+
+Future Method:
+Running Long running operations in backgroung [Ex: Webservices, Bulk DML Opearations(Ex 10000 records), ]
+Future method should be annotated with @future and must be static and return type should be void.
+Drawbacks:
+    1. Future method will be accept primitive data types as parameters.
+    2. Future method will be registered with AsyncApexJob, because the return type as void the JobId will not be returned, hence we cannot track the status of future method.
+    3. We cannot call Future method in another Future Method.
+When we Use Future Method:
+    1. Used to Handling long running operations.
+    2. To resolve Mixed DML Exception. [Setup Objects: Objects on which we make change if it impact the permission of the users on the record of the databse, then they ae Setup object, remaining Object are called non-setup objects]
+    3. 
+*/
