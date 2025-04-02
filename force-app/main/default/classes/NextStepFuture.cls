@@ -33,11 +33,11 @@ Future Method:
         1. All future methods should have @future annotation.
         2. All future methods should be static.
         3. All future methods should be void.
-        4. Onlu primitive variables can be passed as parameters.
+        4. Only primitive variables can be passed as parameters.
         5. When we invoke the future method they will be added to the queue and from the queue they will be executed.
         6. If you want to invoke webservices from the future method then define 
             @future(callout=true)
-        7.Any Asynchronous Job that is running in Salesforce will be registered with AsyncApexJob object.
+        7. Any Asynchronous Job that is running in Salesforce will be registered with AsyncApexJob object.
         8. How to track the status of the job:
             1. Write a SOQL Query on AsyncApexJob.
             2. Declarative way to check the status:
@@ -76,6 +76,7 @@ public with sharing class NextStepFuture {
         for(Account acc : accountList){
             acc.Next_Step__c = 'Meeting in the future';
         }
+        
         if(!accountList.isEmpty()){
             Database.update(accountList);
         }
@@ -84,6 +85,7 @@ public with sharing class NextStepFuture {
         for(Opportunity opp : opportunityList){
             opp.NextStep = 'Meeting in the future';
         }
+        
         if(!opportunityList.isEmpty()){
             Database.update(opportunityList);
         }
