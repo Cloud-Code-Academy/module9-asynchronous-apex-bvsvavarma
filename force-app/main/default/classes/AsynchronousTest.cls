@@ -173,7 +173,7 @@ public with sharing class AsynchronousTest {
         String year = String.valueOf(Date.today().year() + 1);
         String cron = '0 0 0 15 3 ? ' + year; // Arbitrary cron expression for once-off execution in the future
         System.schedule('NextStepScheduleTest', cron, scheduleJob);
-        //scheduleJob.execute(null));
+        scheduleJob.execute(null);
         Test.stopTest();
 
         // Query the updated accounts and opportunities

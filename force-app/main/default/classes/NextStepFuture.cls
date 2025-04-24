@@ -76,7 +76,6 @@ public with sharing class NextStepFuture {
         for(Account acc : accountList){
             acc.Next_Step__c = 'Meeting in the future';
         }
-        
         if(!accountList.isEmpty()){
             Database.update(accountList);
         }
